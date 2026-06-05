@@ -1,0 +1,126 @@
+### 查询所有学生
+GET http://localhost:8080/students
+
+
+### 根据 ID 查询学生
+GET http://localhost:8080/students/1
+
+
+### 分页条件查询学生
+GET http://localhost:8080/students/page?pageNum=1&pageSize=2
+
+
+### 按姓名查询
+GET http://localhost:8080/students/page?pageNum=1&pageSize=10&name=胡
+
+
+### 按专业查询
+GET http://localhost:8080/students/page?pageNum=1&pageSize=10&major=计算机
+
+
+### 新增学生
+POST http://localhost:8080/students
+Content-Type: application/json
+
+{
+  "name": "赵六",
+  "age": 23,
+  "major": "网络工程"
+}
+
+
+### 修改学生
+PUT http://localhost:8080/students/1
+Content-Type: application/json
+
+{
+  "name": "张三丰",
+  "age": 24,
+  "major": "数据科学"
+}
+
+
+### 删除学生
+DELETE http://localhost:8080/students/1
+
+
+### 参数校验测试
+POST http://localhost:8080/students
+Content-Type: application/json
+
+{
+  "name": "",
+  "age": -10,
+  "major": ""
+}
+
+### 用户注册
+POST http://localhost:8080/users/register
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456"
+}
+
+### 用户登录：密码错误
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "111111"
+}
+### 用户登录成功
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456"
+}
+
+### 用户登录：用户名不存在
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "username": "notfound",
+  "password": "123456"
+}
+
+### 用户登录
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "username": "test02",
+  "password": "123456"
+}
+
+### 测试后端权限
+POST http://localhost:8080/students
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MDEiLCJ1c2VySWQiOjMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzgwMzg0ODIxLCJleHAiOjE3ODA0NzEyMjF9.AEMoBOzTQ9zXJBXsISE1Z7TyNvlTNZQhNrWTrXzQJIw
+
+{
+"name": "测试用户11",
+"age": 20,
+"major": "软件技术"
+}
+###测试查询用户列表
+GET http://localhost:8080/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwNjQxMzU3LCJleHAiOjE3ODA3Mjc3NTd9.Ur9b7SHK0kdpNIyX5Ign0p2fvO4cgRA5VXLkc9rMF5I
+
+###测试修改角色
+PUT http://localhost:8080/users/3/role
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwNjQxMzU3LCJleHAiOjE3ODA3Mjc3NTd9.Ur9b7SHK0kdpNIyX5Ign0p2fvO4cgRA5VXLkc9rMF5I
+
+{
+  "role": "ADMIN"
+}
+
+###测试普通用户不能访问
+GET http://localhost:8080/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MDIiLCJ1c2VySWQiOjUsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzgwNjQxNjUyLCJleHAiOjE3ODA3MjgwNTJ9.WJptidgcqnvlHNNvytv1PFcAG-sNCs-Z4lYMGCnB6k4
