@@ -657,3 +657,217 @@ role: USER
 * 增加更完整的接口文档
 * 使用 TypeScript 优化前端类型
 * 使用动态路由实现更完整的权限菜单
+## Redis token 黑名单功能
+
+### 功能说明
+
+本项目接入 Redis 实现 JWT token 黑名单功能，用于解决 JWT 退出登录后旧 token 在过期前仍然可用的问题。
+
+在未接入 Redis 黑名单之前，用户退出登录时，前端只是删除本地保存的 token，后端并不知道该 token 已经退出。如果旧 token 被再次使用，只要它本身还没有过期，后端仍可能认为它有效。
+
+接入 Redis 黑名单后，用户退出登录时，前端会请求后端 logout 接口，后端会把当前 token 存入 Redis 黑名单，并设置过期时间为 token 剩余有效时间。之后所有受保护接口都会先经过 JwtInterceptor，拦截器会检查当前 token 是否存在于 Redis 黑名单中。如果存在，则返回 401，拒绝访问。
+
+---
+
+### Redis 在本项目中的作用
+
+Redis 主要用于保存临时状态数据。
+
+本项目中 Redis 保存的是：
+
+```text
+jwt:blacklist:当前token -> 1
+```
+
+其中：
+
+* key：`jwt:blacklist:` + token
+* value：`1`，表示该 token 已被拉黑
+* 过期时间：token 剩余有效时间
+
+value 的值不是重点，重点是 Redis 中是否存在这个 key。如果存在，说明该 token 已经退出登录，不能继续访问系统。
+
+---
+
+### token 黑名单流程
+
+```text
+用户点击退出登录
+↓
+前端调用 POST /users/logout
+↓
+request 请求拦截器自动携带 Authorization: Bearer token
+↓
+后端 UserController.logout() 获取当前 token
+↓
+JwtUtil.parseToken(token) 解析 token
+↓
+claims.getExpiration() 获取 token 原本过期时间
+↓
+过期时间 - 当前时间 = token 剩余有效时间
+↓
+后端将 token 存入 Redis 黑名单
+↓
+Redis 设置 TTL，时间为 token 剩余有效时间
+↓
+前端清除本地 user 和 token
+↓
+跳转登录页
+```
+
+---
+
+### 拦截器校验流程
+
+```text
+前端请求受保护接口
+↓
+JwtInterceptor 获取 Authorization 请求头
+↓
+截取 Bearer 后面的 token
+↓
+拼接 Redis 黑名单 key：jwt:blacklist:token
+↓
+检查 Redis 中是否存在该 key
+↓
+如果存在：返回 401，提示 token 已退出登录
+↓
+如果不存在：继续解析 token
+↓
+token 有效后继续判断用户权限
+↓
+权限通过后进入 Controller
+```
+
+---
+
+### 为什么 Redis 黑名单要设置过期时间？
+
+JWT token 本身已经有过期时间。
+
+例如 token 有效期为 24 小时，用户在登录后 1 小时退出，此时 token 还剩 23 小时有效期。后端会把该 token 加入 Redis 黑名单，并设置 Redis key 的过期时间为 23 小时。
+
+这样做的原因是：
+
+```text
+token 到期后本身就已经无效
+Redis 没必要永久保存这个黑名单记录
+到期后 Redis 自动删除，避免黑名单无限增长
+```
+
+Redis 的 `ttl` 命令可以查看某个 key 还剩多少秒过期。
+
+---
+
+### Docker 启动 Redis
+
+本项目开发环境使用 Docker 启动 Redis。
+
+启动命令：
+
+```bash
+docker run -d --name redis-dev -p 6379:6379 redis
+```
+
+命令说明：
+
+```text
+docker run        创建并启动容器
+-d                后台运行
+--name redis-dev  容器名称为 redis-dev
+-p 6379:6379      将本机 6379 端口映射到容器 6379 端口
+redis             使用 Redis 镜像
+```
+
+查看运行中的容器：
+
+```bash
+docker ps
+```
+
+进入 Redis 命令行：
+
+```bash
+docker exec -it redis-dev redis-cli
+```
+
+测试 Redis 是否可用：
+
+```bash
+ping
+```
+
+如果返回：
+
+```text
+PONG
+```
+
+说明 Redis 正常运行。
+
+---
+
+### Spring Boot Redis 配置
+
+项目在 `application.properties` 中配置 Redis：
+
+```properties
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+spring.data.redis.database=0
+```
+
+因为 Docker 启动 Redis 时已经将容器的 6379 端口映射到本机 6379 端口，所以 Spring Boot 可以通过 `localhost:6379` 连接 Redis。
+
+---
+
+### 相关修改文件
+
+```text
+student-api/pom.xml
+引入 spring-boot-starter-data-redis 依赖
+
+student-api/src/main/resources/application.properties
+配置 Redis 地址和端口
+
+student-api/src/main/java/com/yujie/studentapi/controller/UserController.java
+新增 POST /users/logout 接口，将 token 加入 Redis 黑名单
+
+student-api/src/main/java/com/yujie/studentapi/interceptor/JwtInterceptor.java
+请求进入 Controller 前，先检查 token 是否在 Redis 黑名单中
+
+student-api/src/main/java/com/yujie/studentapi/common/Result.java
+补充 error 方法，用于统一错误响应
+
+student-web/src/App.vue
+退出登录时先调用后端 /users/logout，再清除前端登录状态
+```
+
+---
+
+### 测试方式
+
+1. 登录系统，获取 token。
+2. 使用 token 请求学生列表，应该成功。
+3. 调用 `POST /users/logout` 退出登录。
+4. 使用同一个旧 token 再次请求学生列表，应该返回 401。
+5. 重新登录获取新 token，新 token 应该可以正常访问接口。
+6. 使用 Redis 命令查看黑名单 key：
+
+```bash
+docker exec -it redis-dev redis-cli
+keys jwt:blacklist:*
+ttl 你的key
+```
+
+如果旧 token 请求接口返回：
+
+```json
+{
+  "code": 401,
+  "message": "token已退出登录，请重新登录",
+  "data": null
+}
+```
+
+说明 Redis token 黑名单功能生效。
