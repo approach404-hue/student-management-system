@@ -124,3 +124,24 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwic
 ###测试普通用户不能访问
 GET http://localhost:8080/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MDIiLCJ1c2VySWQiOjUsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzgwNjQxNjUyLCJleHAiOjE3ODA3MjgwNTJ9.WJptidgcqnvlHNNvytv1PFcAG-sNCs-Z4lYMGCnB6k4
+
+
+###用旧 token 测试接口
+GET http://localhost:8080/students/page?pageNum=1&pageSize=10
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwNzQyOTQ0LCJleHAiOjE3ODA4MjkzNDR9.46uRON_5A_1MRBeX999GSb8lmWTpJ6y07YtQDJls6iI
+
+###测试
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456"
+}
+###测试2
+GET http://localhost:8080/students/page?pageNum=1&pageSize=10
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwNzQzNzc0LCJleHAiOjE3ODA4MzAxNzR9.4i99bArubzwnh2aEZSuYDKp6la6nJ1Dm0n0FaKTQAHE
+
+###测试3
+POST http://localhost:8080/users/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwNzQzMzgzLCJleHAiOjE3ODA4Mjk3ODN9.ECuHaujcEdiVWyR1bo7v6bLiogd_-T8XMGrb2qHxWBw

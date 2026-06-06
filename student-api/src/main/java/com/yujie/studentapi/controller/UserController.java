@@ -8,6 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import com.yujie.studentapi.dto.UpdateRoleRequest;
 import com.yujie.studentapi.dto.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import io.jsonwebtoken.Claims;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import com.yujie.studentapi.utils.JwtUtil;
+
+import java.time.Duration;
+import java.util.Date;
 
 import java.util.List;
 @RestController
@@ -15,9 +21,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final StringRedisTemplate stringRedisTemplate;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, StringRedisTemplate stringRedisTemplate) {
         this.userService = userService;
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
     @PostMapping("/register")
@@ -47,5 +55,32 @@ public class UserController {
 
         return Result.success("角色修改成功");
     }
+    @PostMapping("/logout")
+    public Result<Void> logout(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
 
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return Result.error(401, "请先登录");
+        }
+
+        String token = authorization.substring(7);
+
+        Claims claims = JwtUtil.parseToken(token);
+
+        Date expiration = claims.getExpiration();
+
+        long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+
+        if (remainingMillis > 0) {
+            String blacklistKey = "jwt:blacklist:" + token;
+
+            stringRedisTemplate.opsForValue().set(
+                    blacklistKey,
+                    "1",
+                    Duration.ofMillis(remainingMillis)
+            );
+        }
+
+        return Result.success("退出登录成功");
+    }
 }

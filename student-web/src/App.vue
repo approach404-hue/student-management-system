@@ -92,15 +92,22 @@
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from './stores/userStore'
+import request from './utils/request'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
-const logout = () => {
-  userStore.logout()
-  ElMessage.success('已退出登录')
-  router.push('/login')
+const logout = async () => {
+  try {
+    await request.post('/users/logout')
+    ElMessage.success('已退出登录')
+  } catch (error) {
+    ElMessage.warning('登录状态已清除')
+  } finally {
+    userStore.logout()
+    router.push('/login')
+  }
 }
 
 const goLogin = () => {

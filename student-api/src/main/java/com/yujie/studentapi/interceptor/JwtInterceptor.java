@@ -6,10 +6,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
+    private final StringRedisTemplate stringRedisTemplate;
 
+    public JwtInterceptor(StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
@@ -33,6 +38,15 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         String token = authorization.substring(7);
 
+        String blacklistKey = "jwt:blacklist:" + token;
+
+        if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(blacklistKey))) {
+            response.setStatus(401);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":401,\"message\":\"token已退出登录，请重新登录\",\"data\":null}");
+            return false;
+        }
+
         try {
             Claims claims = JwtUtil.parseToken(token);
 
@@ -48,6 +62,11 @@ public class JwtInterceptor implements HandlerInterceptor {
 
             String uri = request.getRequestURI();
 
+
+            if (uri.equals("/users/logout")) {
+                return true;
+            }
+
             if (uri.startsWith("/users") && !"ADMIN".equals(role)) {
                 response.setStatus(403);
                 response.setContentType("application/json;charset=UTF-8");
@@ -62,12 +81,7 @@ public class JwtInterceptor implements HandlerInterceptor {
                 return false;
             }
 
-            if (!"GET".equalsIgnoreCase(method) && !"ADMIN".equals(role)) {
-                response.setStatus(403);
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"code\":403,\"message\":\"权限不足，只有管理员可以操作\",\"data\":null}");
-                return false;
-            }
+
 
             return true;
         } catch (Exception e) {
