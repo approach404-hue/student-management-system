@@ -642,6 +642,8 @@ role: USER
 
 ---
 
+
+
 ## 十二、后续优化方向
 
 * 接入 Redis，实现 JWT token 黑名单
@@ -657,6 +659,338 @@ role: USER
 * 增加更完整的接口文档
 * 使用 TypeScript 优化前端类型
 * 使用动态路由实现更完整的权限菜单
+
+## 本地 Nginx 部署说明
+
+### 一、部署目标
+
+本项目本地部署使用以下方式：
+
+```text
+前端：Vue 打包生成 dist，由 Nginx 托管
+后端：Spring Boot 打包生成 jar，通过 java -jar 运行
+数据库：MySQL
+缓存：Redis，通过 Docker 容器运行
+接口转发：Nginx 将 /api 请求转发到 Spring Boot 后端
+```
+
+部署后的访问方式：
+
+```text
+前端页面：http://localhost
+后端接口：http://localhost:8080
+Redis：localhost:6379
+```
+
+---
+
+### 二、前端打包
+
+进入前端项目目录：
+
+```bash
+cd D:\New_java\student-system\student-web
+```
+
+执行打包命令：
+
+```bash
+npm run build
+```
+
+打包成功后，会生成：
+
+```text
+student-web/dist
+```
+
+`dist` 文件夹中包含正式部署需要的前端静态文件，例如：
+
+```text
+index.html
+assets/
+js 文件
+css 文件
+图片资源
+```
+
+正式部署时，不再使用 `npm run dev`，而是将 `dist` 交给 Nginx 托管。
+
+---
+
+### 三、后端打包
+
+进入后端项目目录：
+
+```bash
+cd D:\New_java\student-system\student-api
+```
+
+执行打包命令：
+
+```bash
+mvn clean package
+```
+
+打包成功后，会在 `target` 目录下生成 jar 文件，例如：
+
+```text
+student-api-0.0.1-SNAPSHOT.jar
+```
+
+启动后端：
+
+```bash
+cd D:\New_java\student-system\student-api\target
+java -jar student-api-0.0.1-SNAPSHOT.jar
+```
+
+后端默认运行在：
+
+```text
+http://localhost:8080
+```
+
+---
+
+### 四、Redis 启动
+
+本项目使用 Docker 启动 Redis。
+
+启动 Redis 容器：
+
+```bash
+docker run -d --name redis-dev -p 6379:6379 redis
+```
+
+如果容器已经创建过，可以使用：
+
+```bash
+docker start redis-dev
+```
+
+查看 Redis 容器是否运行：
+
+```bash
+docker ps
+```
+
+进入 Redis 命令行：
+
+```bash
+docker exec -it redis-dev redis-cli
+```
+
+测试 Redis：
+
+```bash
+ping
+```
+
+如果返回：
+
+```text
+PONG
+```
+
+说明 Redis 正常运行。
+
+---
+
+### 五、Nginx 配置
+
+Nginx 解压目录示例：
+
+```text
+D:\nginx
+```
+
+配置文件路径：
+
+```text
+D:\nginx\conf\nginx.conf
+```
+
+在 `nginx.conf` 中配置：
+
+```nginx
+server {
+    listen       80;
+    server_name  localhost;
+
+    location / {
+        root   D:/New_java/student-system/student-web/dist;
+        index  index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:8080/;
+    }
+}
+```
+
+配置说明：
+
+```text
+location /
+用于托管前端 dist 文件，浏览器访问 http://localhost 时，Nginx 返回前端页面。
+
+try_files $uri $uri/ /index.html
+用于支持 Vue Router，避免刷新 /students、/users 等前端路由时出现 404。
+
+location /api/
+用于将前端接口请求转发到后端 Spring Boot。
+
+proxy_pass http://localhost:8080/
+表示将 /api/... 请求转发到后端 localhost:8080。
+```
+
+示例：
+
+```text
+前端请求：http://localhost/api/students/page
+
+Nginx 转发到：http://localhost:8080/students/page
+```
+
+---
+
+### 六、启动 Nginx
+
+进入 Nginx 目录：
+
+```bash
+cd D:\nginx
+```
+
+启动 Nginx：
+
+```bash
+start nginx
+```
+
+访问：
+
+```text
+http://localhost
+```
+
+如果能打开前端页面，说明 Nginx 已经成功托管前端 `dist`。
+
+修改 `nginx.conf` 后，可以重新加载配置：
+
+```bash
+nginx -s reload
+```
+
+停止 Nginx：
+
+```bash
+nginx -s stop
+```
+
+---
+
+### 七、本地部署运行顺序
+
+完整运行顺序如下：
+
+```text
+1. 启动 MySQL
+2. 启动 Redis Docker 容器
+3. 启动 Spring Boot jar
+4. 启动 Nginx
+5. 浏览器访问 http://localhost
+```
+
+对应命令示例：
+
+```bash
+docker start redis-dev
+```
+
+```bash
+cd D:\New_java\student-system\student-api\target
+java -jar student-api-0.0.1-SNAPSHOT.jar
+```
+
+```bash
+cd D:\nginx
+start nginx
+```
+
+---
+
+### 八、部署后测试内容
+
+部署完成后，在 `http://localhost` 页面测试：
+
+```text
+1. 登录功能是否正常
+2. 学生列表是否能正常加载
+3. 新增、修改、删除学生是否正常
+4. 普通用户是否只能查看学生
+5. 管理员是否可以访问用户管理页面
+6. 管理员是否可以修改用户角色
+7. 退出登录是否正常
+8. 退出后旧 token 是否被 Redis 黑名单拦截
+9. 刷新 /students 页面是否正常
+10. 刷新 /users 页面是否正常
+```
+
+如果刷新 `/students` 或 `/users` 页面不出现 404，说明 Nginx 中的：
+
+```nginx
+try_files $uri $uri/ /index.html;
+```
+
+配置生效。
+
+---
+
+### 九、部署流程总结
+
+本项目部署流程可以总结为：
+
+```text
+Vue 源码
+↓
+npm run build
+↓
+dist 静态文件
+↓
+Nginx 托管前端页面
+```
+
+```text
+Spring Boot 源码
+↓
+mvn clean package
+↓
+jar 文件
+↓
+java -jar 启动后端服务
+```
+
+```text
+浏览器访问 http://localhost
+↓
+Nginx 返回前端页面
+↓
+前端请求 /api 接口
+↓
+Nginx 转发到 Spring Boot 8080
+↓
+Spring Boot 访问 MySQL / Redis
+↓
+后端返回 JSON 数据
+↓
+前端页面更新
+```
+
+
+
 ## Redis token 黑名单功能
 
 ### 功能说明
@@ -871,3 +1205,4 @@ ttl 你的key
 ```
 
 说明 Redis token 黑名单功能生效。
+
