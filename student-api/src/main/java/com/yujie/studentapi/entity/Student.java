@@ -27,7 +27,7 @@ public class Student {
     @NotBlank(message = "专业不能为空")
     private String major;
 
-
+    private String avatar;
     public Student() {
     }
 
@@ -37,6 +37,17 @@ public class Student {
         this.age = age;
         this.major = major;
     }
+
+    public Student(Integer id, String name, Integer age, String major, String avatar) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.major = major;
+        this.avatar = avatar;
+    }
+    public String getAvatar() {return avatar;}
+
+    public void setAvatar(String avatar) {this.avatar = avatar;}
 
     public Integer getId() {
         return id;

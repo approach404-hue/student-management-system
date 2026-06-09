@@ -33,6 +33,7 @@ public class StudentService {
     }
 
     public void addStudent(Student student) {
+        checkAvatar(student.getAvatar());
         studentMapper.insert(student);
     }
 
@@ -42,6 +43,8 @@ public class StudentService {
         if (oldStudent == null) {
             throw new BusinessException("修改失败：没有找到 id 为 " + id + " 的学生");
         }
+
+        checkAvatar(student.getAvatar());
 
         student.setId(id);
         studentMapper.updateById(student);
@@ -56,6 +59,7 @@ public class StudentService {
 
         studentMapper.deleteById(id);
     }
+
     public Page<Student> pageStudents(Integer pageNum, Integer pageSize, String name, String major) {
         if (pageNum == null || pageNum < 1) {
             pageNum = 1;
@@ -80,5 +84,31 @@ public class StudentService {
         wrapper.orderByDesc(Student::getId);
 
         return studentMapper.selectPage(page, wrapper);
+    }
+
+    private void checkAvatar(String avatar) {
+        if (avatar == null || avatar.trim().isEmpty()) {
+            return;
+        }
+
+        String trimmedAvatar = avatar.trim();
+
+        if (!trimmedAvatar.startsWith("/uploads/")) {
+            throw new BusinessException("头像地址不合法");
+        }
+
+        if (trimmedAvatar.contains("..")) {
+            throw new BusinessException("头像地址不合法");
+        }
+
+        String lowerAvatar = trimmedAvatar.toLowerCase();
+
+        if (!lowerAvatar.endsWith(".jpg")
+                && !lowerAvatar.endsWith(".jpeg")
+                && !lowerAvatar.endsWith(".png")
+                && !lowerAvatar.endsWith(".gif")
+                && !lowerAvatar.endsWith(".webp")) {
+            throw new BusinessException("头像格式不合法");
+        }
     }
 }

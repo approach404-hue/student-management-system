@@ -13,6 +13,27 @@
     />
 
     <el-table-column
+      label="头像"
+      width="100"
+      align="center"
+    >
+      <template #default="{ row }">
+        <el-avatar
+          v-if="row.avatar"
+          :size="50"
+          :src="getImageUrl(row.avatar)"
+        />
+
+        <el-avatar
+          v-else
+          :size="50"
+        >
+          无
+        </el-avatar>
+      </template>
+    </el-table-column>
+
+    <el-table-column
       prop="name"
       label="姓名"
       align="center"
@@ -71,6 +92,16 @@ defineProps({
 })
 
 const emit = defineEmits(['edit', 'delete'])
+
+const getImageUrl = (url) => {
+  if (!url) return ''
+
+  if (url.startsWith('http')) {
+    return url
+  }
+
+  return 'http://localhost:8080' + url
+}
 
 const emitEdit = (student) => {
   emit('edit', student)

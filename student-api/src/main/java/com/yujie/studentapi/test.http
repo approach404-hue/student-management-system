@@ -142,6 +142,49 @@ Content-Type: application/json
 GET http://localhost:8080/students/page?pageNum=1&pageSize=10
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwNzQzNzc0LCJleHAiOjE3ODA4MzAxNzR9.4i99bArubzwnh2aEZSuYDKp6la6nJ1Dm0n0FaKTQAHE
 
-###测试3
-POST http://localhost:8080/users/logout
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwNzQzMzgzLCJleHAiOjE3ODA4Mjk3ODN9.ECuHaujcEdiVWyR1bo7v6bLiogd_-T8XMGrb2qHxWBw
+
+### 上传学生头像
+POST http://localhost:8080/upload/image
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MDIiLCJ1c2VySWQiOjUsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzgwOTIwMjE3LCJleHAiOjE3ODEwMDY2MTd9.2qnYjse5gdAxGCjMsepUkzgLWnwis5fm3ptQJAfwmjY
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="test-avatar.png"
+Content-Type: image/png
+
+< D:/New_java/student-system/student-api/test-avatar.png
+--WebAppBoundary--
+
+### 不带 token 上传头像，预期返回 401
+POST http://localhost:8080/upload/image
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="avatar.png"
+Content-Type: image/png
+
+< D:/New_java/student-system/student-api/test-avatar.png
+--WebAppBoundary--
+###非法avatar
+POST http://localhost:8080/students
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwOTIxNjkxLCJleHAiOjE3ODEwMDgwOTF9.5XurOLSwZJwV1RzZGRRK5HCWsfaucFt-qZdQGb47MSA
+
+{
+  "name": "非法头像测试",
+  "age": 22,
+  "major": "网络工程",
+  "avatar": "http://abc.com/a.png"
+}
+
+###无头像测试
+POST http://localhost:8080/students
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgwOTIxNjkxLCJleHAiOjE3ODEwMDgwOTF9.5XurOLSwZJwV1RzZGRRK5HCWsfaucFt-qZdQGb47MSA
+
+{
+"name": "无头像测试",
+"age": 20,
+"major": "软件工程",
+"avatar": ""
+}

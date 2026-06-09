@@ -84,7 +84,8 @@ const showAddDialog = ref(false)
 const addForm = ref({
   name: '',
   age: '',
-  major: ''
+  major: '',
+  avatar: ''
 })
 
 const showEditDialog = ref(false)
@@ -93,7 +94,8 @@ const editForm = ref({
   id: '',
   name: '',
   age: '',
-  major: ''
+  major: '',
+  avatar: ''
 })
 
 const loadStudents = async () => {
@@ -147,7 +149,8 @@ const openAddDialog = () => {
   addForm.value = {
     name: '',
     age: '',
-    major: ''
+    major: '',
+    avatar: ''
   }
 
   showAddDialog.value = true
@@ -162,7 +165,8 @@ const openEditDialog = (student) => {
     id: student.id,
     name: student.name,
     age: student.age,
-    major: student.major
+    major: student.major,
+    avatar: student.avatar || ''
   }
 
   showEditDialog.value = true
@@ -177,7 +181,8 @@ const submitAddStudent = async () => {
     const res = await request.post('/students', {
       name: addForm.value.name.trim(),
       age: Number(addForm.value.age),
-      major: addForm.value.major.trim()
+      major: addForm.value.major.trim(),
+      avatar: addForm.value.avatar
     })
 
     if (res.data.code === 200) {
@@ -200,7 +205,8 @@ const submitEditStudent = async () => {
     const res = await request.put(`/students/${editForm.value.id}`, {
       name: editForm.value.name.trim(),
       age: Number(editForm.value.age),
-      major: editForm.value.major.trim()
+      major: editForm.value.major.trim(),
+      avatar: editForm.value.avatar
     })
 
     if (res.data.code === 200) {
