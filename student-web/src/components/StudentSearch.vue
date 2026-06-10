@@ -33,10 +33,31 @@
     >
       新增学生
     </el-button>
+
+    <el-button
+      v-if="isAdmin"
+      type="warning"
+      @click="emit('export')"
+    >
+      导出 Excel
+    </el-button>
+
+    <el-upload
+      v-if="isAdmin"
+      :show-file-list="false"
+      :before-upload="beforeExcelUpload"
+      :http-request="uploadExcel"
+    >
+      <el-button type="info">
+        导入 Excel
+      </el-button>
+    </el-upload>
   </div>
 </template>
 
 <script setup>
+import { ElMessage } from 'element-plus'
+
 defineProps({
   name: {
     type: String,
@@ -57,7 +78,9 @@ const emit = defineEmits([
   'update:major',
   'search',
   'reset',
-  'add'
+  'add',
+  'export',
+  'import'
 ])
 
 const emitNameChange = (value) => {
@@ -66,6 +89,21 @@ const emitNameChange = (value) => {
 
 const emitMajorChange = (value) => {
   emit('update:major', value)
+}
+
+const beforeExcelUpload = (file) => {
+  const isXlsx = file.name.toLowerCase().endsWith('.xlsx')
+
+  if (!isXlsx) {
+    ElMessage.error('只能导入 .xlsx 文件')
+    return false
+  }
+
+  return true
+}
+
+const uploadExcel = (options) => {
+  emit('import', options.file)
 }
 </script>
 

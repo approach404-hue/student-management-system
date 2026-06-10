@@ -74,6 +74,12 @@ public class JwtInterceptor implements HandlerInterceptor {
                 response.getWriter().write("{\"code\":403,\"message\":\"权限不足，只有管理员可以上传头像\",\"data\":null}");
                 return false;
             }
+            if (uri.equals("/students/export") && !"ADMIN".equals(role)) {
+                response.setStatus(403);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"code\":403,\"message\":\"权限不足，只有管理员可以导出学生数据\",\"data\":null}");
+                return false;
+            }
 
             if (uri.startsWith("/users") && !"ADMIN".equals(role)) {
                 response.setStatus(403);

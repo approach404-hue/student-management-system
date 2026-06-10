@@ -9,6 +9,8 @@
       @search="searchStudents"
       @reset="resetSearch"
       @add="openAddDialog"
+      @export="exportStudents"
+      @import="importStudents"
     />
 
     <StudentTable
@@ -223,6 +225,34 @@ const submitEditStudent = async () => {
   }
 }
 
+const exportStudents = async () => {
+  try {
+    const res = await request.get('/students/export', {
+      responseType: 'blob'
+    })
+
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+
+    const url = window.URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.download = '学生信息.xlsx'
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    window.URL.revokeObjectURL(url)
+
+    ElMessage.success('导出成功')
+  } catch (error) {
+    ElMessage.error('导出失败')
+  }
+}
+
 const deleteStudent = async (id) => {
   try {
     await ElMessageBox.confirm(
@@ -258,7 +288,32 @@ const deleteStudent = async (id) => {
     }
   }
 }
+const importStudents = async (file) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
 
+    const res = await request.post('/students/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (res.data.code === 200) {
+      ElMessage.success(res.data.message || '导入成功')
+      pageNum.value = 1
+      loadStudents()
+    } else {
+      ElMessage.error(res.data.message || '导入失败')
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      ElMessage.error(error.response.data.message)
+    } else {
+      ElMessage.error('导入失败')
+    }
+  }
+}
 onMounted(() => {
   loadStudents()
 })

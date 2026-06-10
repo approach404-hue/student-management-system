@@ -135,7 +135,7 @@ POST http://localhost:8080/users/login
 Content-Type: application/json
 
 {
-  "username": "admin",
+  "username": "test02",
   "password": "123456"
 }
 ###测试2
@@ -188,3 +188,30 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwic
 "major": "软件工程",
 "avatar": ""
 }
+
+
+
+### 普通用户导出学生 Excel，应该失败
+GET http://localhost:8080/students/export
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MDIiLCJ1c2VySWQiOjUsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzgxMDg3NjgxLCJleHAiOjE3ODExNzQwODF9.1xkIKQ0_ueReR0BWB7SItWlitbbvVYD5WUV4zz_8qgE
+
+
+
+$token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgxMDg2NjMyLCJleHAiOjE3ODExNzMwMzJ9.NYP50xtkCSIXdSzm9o9rUAOWh2SqHkYBP5slq-eTjf4"
+
+Invoke-WebRequest `
+  -Uri "http://localhost:8080/students/export" `
+  -Headers @{ Authorization = "Bearer $token" } `
+  -OutFile "D:\New_java\student-system\学生信息.xlsx"
+
+### 管理员导入学生 Excel
+POST http://localhost:8080/students/import
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MDIiLCJ1c2VySWQiOjUsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzgxMDkyOTQ1LCJleHAiOjE3ODExNzkzNDV9.f6hmzqgczpaXrmpnGbALoWOS44dO8HYCr_LjkLZThB8
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="导入学生测试数据.xlsx"
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+< D:\New_java\student-system\导入学生测试数据.xlsx
+--WebAppBoundary--
