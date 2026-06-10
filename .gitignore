@@ -33,3 +33,5 @@ Thumbs.db
 upload/
 uploads/
 temp/
+# local excel test files
+*.xlsx
