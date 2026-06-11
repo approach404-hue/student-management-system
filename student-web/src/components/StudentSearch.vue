@@ -41,7 +41,14 @@
     >
       导出 Excel
     </el-button>
-
+    <el-button
+    v-if="isAdmin"
+    type="primary"
+    plain
+    @click="emit('download-template')"
+    >
+  下载模板
+  </el-button>
     <el-upload
       v-if="isAdmin"
       :show-file-list="false"
@@ -80,6 +87,7 @@ const emit = defineEmits([
   'reset',
   'add',
   'export',
+  'download-template',
   'import'
 ])
 

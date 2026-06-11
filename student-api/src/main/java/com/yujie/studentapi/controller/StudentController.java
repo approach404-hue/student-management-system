@@ -73,7 +73,39 @@ public class StudentController {
         response.getOutputStream().write(bytes);
         response.getOutputStream().flush();
     }
+    @Operation(summary = "下载学生导入模板")
+    @GetMapping("/students/import-template")
+    public void downloadImportTemplate(HttpServletResponse response) throws Exception {
+        StudentExcelDTO example = new StudentExcelDTO();
+        example.setName("张三");
+        example.setAge(20);
+        example.setMajor("软件工程");
+        example.setAvatar("");
 
+        List<StudentExcelDTO> data = List.of(example);
+
+        String fileName = URLEncoder.encode("学生导入模板.xlsx", StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        EasyExcel.write(outputStream, StudentExcelDTO.class)
+                .autoCloseStream(false)
+                .sheet("导入模板")
+                .doWrite(data);
+
+        byte[] bytes = outputStream.toByteArray();
+
+        response.reset();
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        response.setHeader("Content-Disposition", "attachment;filename*=utf-8''" + fileName);
+        response.setHeader("Cache-Control", "no-cache");
+        response.setContentLength(bytes.length);
+
+        response.getOutputStream().write(bytes);
+        response.getOutputStream().flush();
+    }
     @Operation(summary = "导入学生 Excel")
     @PostMapping("/students/import")
     public Result<Integer> importStudents(@RequestParam("file") MultipartFile file) {

@@ -11,6 +11,7 @@
       @add="openAddDialog"
       @export="exportStudents"
       @import="importStudents"
+      @download-template="downloadTemplate"
     />
 
     <StudentTable
@@ -312,6 +313,33 @@ const importStudents = async (file) => {
     } else {
       ElMessage.error('导入失败')
     }
+  }
+}
+const downloadTemplate = async () => {
+  try {
+    const res = await request.get('/students/import-template', {
+      responseType: 'blob'
+    })
+
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+
+    const url = window.URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.download = '学生导入模板.xlsx'
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    window.URL.revokeObjectURL(url)
+
+    ElMessage.success('模板下载成功')
+  } catch (error) {
+    ElMessage.error('模板下载失败')
   }
 }
 onMounted(() => {

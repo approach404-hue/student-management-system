@@ -135,7 +135,7 @@ POST http://localhost:8080/users/login
 Content-Type: application/json
 
 {
-  "username": "test02",
+  "username": "admin",
   "password": "123456"
 }
 ###测试2
@@ -215,3 +215,8 @@ Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 
 < D:\New_java\student-system\导入学生测试数据.xlsx
 --WebAppBoundary--
+
+
+### 下载学生导入模板
+GET http://localhost:8080/students/import-template
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgxMTc4NjU3LCJleHAiOjE3ODEyNjUwNTd9.fHvBNfJ47Wxv6bdKKvw2OzBw6Rj_jgNAGkIGZ4coYvI
