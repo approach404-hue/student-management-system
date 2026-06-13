@@ -126,4 +126,17 @@ public class UserService {
 
         userMapper.insert(user);
     }
+    public void deleteUser(Integer id, Integer currentUserId) {
+        User dbUser = userMapper.selectById(id);
+
+        if (dbUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        if (dbUser.getId().equals(currentUserId)) {
+            throw new BusinessException("不能删除自己");
+        }
+
+        userMapper.deleteById(id);
+    }
 }

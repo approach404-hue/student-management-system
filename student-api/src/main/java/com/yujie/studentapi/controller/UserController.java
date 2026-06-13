@@ -88,4 +88,13 @@ public class UserController {
         userService.addUser(request);
         return Result.success("新增用户成功");
     }
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteUser(@PathVariable Integer id,
+                                   HttpServletRequest httpRequest) {
+        Integer currentUserId = (Integer) httpRequest.getAttribute("userId");
+
+        userService.deleteUser(id, currentUserId);
+
+        return Result.success("删除用户成功");
+    }
 }

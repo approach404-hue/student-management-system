@@ -65,6 +65,30 @@
             </div>
           </template>
         </el-table-column>
+
+        <el-table-column
+          label="操作"
+          width="160"
+          align="center"
+        >
+          <template #default="{ row }">
+            <el-button
+              type="danger"
+              size="small"
+              :disabled="row.id === userStore.user?.id"
+              @click="deleteUser(row)"
+            >
+              删除
+            </el-button>
+
+            <div
+              v-if="row.id === userStore.user?.id"
+              class="self-tip"
+            >
+              不能删除自己
+            </div>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
 
@@ -235,6 +259,44 @@ const changeRole = async (row) => {
 
     if (error.response && error.response.data && error.response.data.message) {
       ElMessage.error(error.response.data.message)
+    }
+  }
+}
+
+const deleteUser = async (row) => {
+  if (row.id === userStore.user?.id) {
+    ElMessage.error('不能删除自己')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除用户 ${row.username} 吗？删除后不可恢复。`,
+      '删除用户确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    const res = await request.delete(`/users/${row.id}`)
+
+    if (res.data.code === 200) {
+      ElMessage.success('删除用户成功')
+      loadUsers()
+    } else {
+      ElMessage.error(res.data.message || '删除用户失败')
+    }
+  } catch (error) {
+    if (error === 'cancel') {
+      return
+    }
+
+    if (error.response && error.response.data && error.response.data.message) {
+      ElMessage.error(error.response.data.message)
+    } else {
+      ElMessage.error('删除用户失败')
     }
   }
 }
