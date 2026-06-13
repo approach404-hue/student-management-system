@@ -220,3 +220,15 @@ Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 ### 下载学生导入模板
 GET http://localhost:8080/students/import-template
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgxMTc4NjU3LCJleHAiOjE3ODEyNjUwNTd9.fHvBNfJ47Wxv6bdKKvw2OzBw6Rj_jgNAGkIGZ4coYvI
+
+
+### 管理员新增用户
+POST http://localhost:8080/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgxMTgyNDM0LCJleHAiOjE3ODEyNjg4MzR9.pokrLLbG2z3y8sQ3XlIJvf3RE1OYGUDKihqEBXENH3A
+Content-Type: application/json
+
+{
+  "username": "test03",
+  "password": "123456",
+  "role": "USER"
+}

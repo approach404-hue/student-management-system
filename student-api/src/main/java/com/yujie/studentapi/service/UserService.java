@@ -1,7 +1,7 @@
 package com.yujie.studentapi.service;
 
 import com.yujie.studentapi.dto.UserResponse;
-
+import com.yujie.studentapi.dto.UserAddDTO;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -100,5 +100,30 @@ public class UserService {
 
         dbUser.setRole(role);
         userMapper.updateById(dbUser);
+    }
+    public void addUser(UserAddDTO request) {
+        String username = request.getUsername().trim();
+        String password = request.getPassword().trim();
+        String role = request.getRole().trim();
+
+        if (!"ADMIN".equals(role) && !"USER".equals(role)) {
+            throw new BusinessException("角色只能是 ADMIN 或 USER");
+        }
+
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username);
+
+        User oldUser = userMapper.selectOne(wrapper);
+
+        if (oldUser != null) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role);
+
+        userMapper.insert(user);
     }
 }

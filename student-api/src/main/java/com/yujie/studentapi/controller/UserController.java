@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import io.jsonwebtoken.Claims;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import com.yujie.studentapi.utils.JwtUtil;
-
+import com.yujie.studentapi.dto.UserAddDTO;
 import java.time.Duration;
 import java.util.Date;
 
@@ -82,5 +82,10 @@ public class UserController {
         }
 
         return Result.success("退出登录成功");
+    }
+    @PostMapping
+    public Result<Void> addUser(@RequestBody @Valid UserAddDTO request) {
+        userService.addUser(request);
+        return Result.success("新增用户成功");
     }
 }
