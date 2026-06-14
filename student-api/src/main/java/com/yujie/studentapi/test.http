@@ -232,3 +232,13 @@ Content-Type: application/json
   "password": "123456",
   "role": "USER"
 }
+
+
+### 管理员重置用户密码
+PUT http://localhost:8080/users/101/password
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzgxNDM2Njk0LCJleHAiOjE3ODE1MjMwOTR9.LmZWmWcYAqkWoVIhvfct_YRIOKNfuDmzfRbJgoSHibE
+Content-Type: application/json
+
+{
+  "password": "123456"
+}

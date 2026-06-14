@@ -68,10 +68,18 @@
 
         <el-table-column
           label="操作"
-          width="160"
+          width="260"
           align="center"
         >
           <template #default="{ row }">
+            <el-button
+              type="warning"
+              size="small"
+              @click="openResetPasswordDialog(row)"
+            >
+              重置密码
+            </el-button>
+
             <el-button
               type="danger"
               size="small"
@@ -138,6 +146,42 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <el-dialog
+      v-model="resetDialogVisible"
+      title="重置密码"
+      width="420px"
+    >
+      <el-form
+        :model="resetPasswordForm"
+        label-width="90px"
+      >
+        <el-form-item label="用户">
+          <el-input
+            :model-value="currentResetUser?.username"
+            disabled
+          />
+        </el-form-item>
+
+        <el-form-item label="新密码">
+          <el-input
+            v-model="resetPasswordForm.password"
+            type="password"
+            show-password
+            placeholder="请输入新密码"
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="resetDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="resetPassword">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -160,6 +204,14 @@ const addUserForm = ref({
   role: 'USER'
 })
 
+const resetDialogVisible = ref(false)
+
+const currentResetUser = ref(null)
+
+const resetPasswordForm = ref({
+  password: ''
+})
+
 const openAddDialog = () => {
   addUserForm.value = {
     username: '',
@@ -168,6 +220,16 @@ const openAddDialog = () => {
   }
 
   addDialogVisible.value = true
+}
+
+const openResetPasswordDialog = (row) => {
+  currentResetUser.value = row
+
+  resetPasswordForm.value = {
+    password: ''
+  }
+
+  resetDialogVisible.value = true
 }
 
 const loadUsers = async () => {
@@ -223,6 +285,38 @@ const addUser = async () => {
       ElMessage.error(error.response.data.message)
     } else {
       ElMessage.error('新增用户失败')
+    }
+  }
+}
+
+const resetPassword = async () => {
+  if (!currentResetUser.value) {
+    ElMessage.error('请选择要重置密码的用户')
+    return
+  }
+
+  if (!resetPasswordForm.value.password.trim()) {
+    ElMessage.error('新密码不能为空')
+    return
+  }
+
+  try {
+    const res = await request.put(`/users/${currentResetUser.value.id}/password`, {
+      password: resetPasswordForm.value.password.trim()
+    })
+
+    if (res.data.code === 200) {
+      ElMessage.success('密码重置成功')
+      resetDialogVisible.value = false
+      resetPasswordForm.value.password = ''
+    } else {
+      ElMessage.error(res.data.message || '密码重置失败')
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      ElMessage.error(error.response.data.message)
+    } else {
+      ElMessage.error('密码重置失败')
     }
   }
 }

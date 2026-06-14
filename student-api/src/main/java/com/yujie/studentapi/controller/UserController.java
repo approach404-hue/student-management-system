@@ -14,6 +14,7 @@ import com.yujie.studentapi.utils.JwtUtil;
 import com.yujie.studentapi.dto.UserAddDTO;
 import java.time.Duration;
 import java.util.Date;
+import com.yujie.studentapi.dto.ResetPasswordDTO;
 
 import java.util.List;
 @RestController
@@ -96,5 +97,11 @@ public class UserController {
         userService.deleteUser(id, currentUserId);
 
         return Result.success("删除用户成功");
+    }
+    @PutMapping("/{id}/password")
+    public Result<Void> resetPassword(@PathVariable Integer id,
+                                      @RequestBody @Valid ResetPasswordDTO request) {
+        userService.resetPassword(id, request.getPassword());
+        return Result.success("密码重置成功");
     }
 }

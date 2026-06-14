@@ -139,4 +139,21 @@ public class UserService {
 
         userMapper.deleteById(id);
     }
+    public void resetPassword(Integer id, String password) {
+        User dbUser = userMapper.selectById(id);
+
+        if (dbUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        String newPassword = password.trim();
+
+        if (newPassword.isEmpty()) {
+            throw new BusinessException("新密码不能为空");
+        }
+
+        dbUser.setPassword(passwordEncoder.encode(newPassword));
+
+        userMapper.updateById(dbUser);
+    }
 }
